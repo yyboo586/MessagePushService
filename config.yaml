@@ -1,0 +1,20 @@
+server:
+  publicAddr: 0.0.0.0:9700
+  privateAddr: 0.0.0.0:9701
+
+websocket:
+  addr: 0.0.0.0:9702
+
+mq:
+  type: nsq
+  nsqdAddr: 124.220.236.38:4150
+
+thirdService:
+  identifyServiceAddr: http://0.0.0.0:9500
+
+db:
+  user: root
+  passwd: 12345678
+  host: 47.109.79.103
+  port: 3306
+  dbName: message_push
