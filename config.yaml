@@ -1,0 +1,17 @@
+server:
+  publicAddr: 0.0.0.0:9700
+  privateAddr: 0.0.0.0:9701
+
+mq:
+  type: nsq
+  nsqdAddr: 124.221.243.128:4150
+
+thirdService:
+  identifyServiceAddr: http://124.221.243.128:9500
+
+db:
+  user: root
+  passwd: alsnvlkansda
+  host: 47.109.79.103
+  port: 9234
+  dbName: message_push
