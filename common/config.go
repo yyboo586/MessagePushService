@@ -15,8 +15,9 @@ var (
 type Config struct {
 	Server       *ServerConfig       `yaml:"server"`
 	MQ           *MQConfig           `yaml:"mq"`
-	ThirdService *ThirdServiceConfig `yaml:"thirdService"`
 	DB           *DBConfig           `yaml:"db"`
+	ThirdService *ThirdServiceConfig `yaml:"thirdService"`
+	Event        *EventConfig        `yaml:"event"`
 }
 
 type ServerConfig struct {
@@ -43,6 +44,10 @@ type DBConfig struct {
 	Host   string `yaml:"host"`
 	Port   int    `yaml:"port"`
 	DBName string `yaml:"dbName"`
+}
+
+type EventConfig struct {
+	Topics []string `yaml:"topics"`
 }
 
 func NewConfig() *Config {

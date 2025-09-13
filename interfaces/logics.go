@@ -61,16 +61,14 @@ type ILogicsMessage interface {
 	Add(ctx context.Context, messageType MessageType, userIDs []string, messageID string, content string) error
 	// 根据消息ID获取消息
 	GetByID(ctx context.Context, messageID string) (out *LogicsMessage, userIDs []string, err error)
-	// 获取待推送的消息
-	GetPendingMessage(ctx context.Context) (out *LogicsMessage, userIDs []string, err error)
 	// 根据用户ID获取待推送的消息
-	GetPendingByUserID(ctx context.Context, userID string) (outs []*LogicsMessage, err error)
+	GetByUserID(ctx context.Context, userID string) (outs []*LogicsMessage, err error)
 	// 更新消息状态
 	UpdateStatus(ctx context.Context, userID, msgID string, status MessagePushStatus) error
 }
 
 type ILogicsMessagePush interface {
-	NotifyByNewMessage()
+	NotifyByNewMessage(messageID string)
 	NotifyByUserLogin(userID string)
 }
 

@@ -56,21 +56,7 @@ func (l *logicsMessage) GetByID(ctx context.Context, messageID string) (out *int
 	return interfaces.ConvertDBMessageToModel(message), userIDs, nil
 }
 
-func (l *logicsMessage) GetPendingMessage(ctx context.Context) (out *interfaces.LogicsMessage, userIDs []string, err error) {
-	message, userIDs, err := l.dbMessage.GetByPushStatus(ctx, interfaces.MessagePushStatusUnhandled)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	if message == nil {
-		return
-	}
-
-	out = interfaces.ConvertDBMessageToModel(message)
-	return
-}
-
-func (l *logicsMessage) GetPendingByUserID(ctx context.Context, userID string) (outs []*interfaces.LogicsMessage, err error) {
+func (l *logicsMessage) GetByUserID(ctx context.Context, userID string) (outs []*interfaces.LogicsMessage, err error) {
 	messages, err := l.dbMessage.GetByUserID(ctx, userID, interfaces.MessagePushStatusUnhandled, l.userloginBatchLimit)
 	if err != nil {
 		log.Println(err)

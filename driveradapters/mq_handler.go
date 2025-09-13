@@ -45,13 +45,15 @@ func NewMQHandler(config *common.Config, logicsMessage interfaces.ILogicsMessage
 		}
 	})
 
-	mqHandler.Start()
+	mqHandler.Start(config)
 
 	return mqHandler
 }
 
-func (mqHandler *MQHandler) Start() {
-	mqHandler.Register(interfaces.MessageTypeToUsersTopic, mqHandler.handleToUsers)
+func (mqHandler *MQHandler) Start(config *common.Config) {
+	for _, topic := range config.Event.Topics {
+		mqHandler.Register(topic, mqHandler.handleToUsers)
+	}
 }
 
 func (mqHandler *MQHandler) Register(topic string, handler func(msg *mqsdk.Message) (err error)) {
@@ -101,6 +103,6 @@ func (mqHandler *MQHandler) handleToUsers(msg *mqsdk.Message) (err error) {
 		return
 	}
 
-	mqHandler.messagePush.NotifyByNewMessage()
+	mqHandler.messagePush.NotifyByNewMessage(msg.ID)
 	return
 }

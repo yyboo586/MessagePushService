@@ -15,3 +15,9 @@ db:
   host: 47.109.79.103
   port: 9234
   dbName: message_push
+
+event:
+  topics:
+    - core.push.users
+    - test01
+    - test02
