@@ -106,7 +106,12 @@ func (messagePush *messagePush) pushMessageToUsers(ctx context.Context, message 
 			continue
 		}
 
-		jsonData, err := json.Marshal(message)
+		var i map[string]interface{}
+		i = make(map[string]interface{})
+		i["id"] = message.ID
+		i["body"] = message.Content
+		i["timestamp"] = message.Timestamp
+		jsonData, err := json.Marshal(i)
 		if err != nil {
 			log.Printf("[ERROR] marshal message error: %v", err)
 			continue
@@ -129,7 +134,12 @@ func (messagePush *messagePush) pushMessagesToUser(ctx context.Context, messages
 	}
 
 	for _, message := range messages {
-		jsonData, err := json.Marshal(message)
+		var i map[string]interface{}
+		i = make(map[string]interface{})
+		i["id"] = message.ID
+		i["body"] = message.Content
+		i["timestamp"] = message.Timestamp
+		jsonData, err := json.Marshal(i)
 		if err != nil {
 			log.Printf("[ERROR] marshal message error: %v", err)
 			continue

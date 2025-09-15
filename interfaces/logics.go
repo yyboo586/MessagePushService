@@ -13,9 +13,10 @@ import (
 type MessageType int
 
 const (
-	_                  MessageType = iota
-	MessageTypeACK                 // 消息确认
-	MessageTypeToUsers             // 推送给指定用户集合
+	_                   MessageType = iota
+	MessageTypeACK                  // 消息确认
+	MessageTypeChatRoom             // 聊天室消息
+	MessageTypeToUsers              // 推送给指定用户集合
 )
 
 const (
@@ -50,15 +51,16 @@ type ILogicsWsConnManager interface {
 
 type LogicsMessage struct {
 	ID        string
-	Type      int
-	Content   string
+	Type      MessageType
+	Content   interface{}
+	Timestamp int64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type ILogicsMessage interface {
 	// 添加消息
-	Add(ctx context.Context, messageType MessageType, userIDs []string, messageID string, content string) error
+	Add(ctx context.Context, messageType MessageType, userIDs []string, messageID string, content string, timestamp int64) error
 	// 根据消息ID获取消息
 	GetByID(ctx context.Context, messageID string) (out *LogicsMessage, userIDs []string, err error)
 	// 根据用户ID获取待推送的消息

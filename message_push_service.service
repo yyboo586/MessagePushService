@@ -1,0 +1,13 @@
+[Unit]
+Description=Message Push Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/usr/share/message_push_service
+ExecStart=/usr/share/message_push_service/message_push_service
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

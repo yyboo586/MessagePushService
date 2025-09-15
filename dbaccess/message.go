@@ -46,8 +46,8 @@ func (m *dbMessage) Add(ctx context.Context, userIDs []string, message *interfac
 
 	strSQL1 := `
 	INSERT INTO t_message 
-		(id, type, content) 
-	VALUES (?, ?, ?)
+		(id, type, content, timestamp) 
+	VALUES (?, ?, ?, ?)
 `
 	strSQL2 := `
 	INSERT INTO t_user_message 
@@ -62,7 +62,7 @@ func (m *dbMessage) Add(ctx context.Context, userIDs []string, message *interfac
 	}
 	strSQL2 += strings.Join(placeholders, ",")
 
-	_, err = tx.ExecContext(ctx, strSQL1, message.ID, message.Type, message.Content)
+	_, err = tx.ExecContext(ctx, strSQL1, message.ID, message.Type, message.Content, message.Timestamp)
 	if err != nil {
 		return
 	}
@@ -79,14 +79,14 @@ func (m *dbMessage) GetByID(ctx context.Context, messageID string) (out *interfa
 	userIDs = make([]string, 0)
 	strSQL := `
 		SELECT 
-			m.id, m.type, m.content 
+			m.id, m.type, m.content, m.timestamp, m.created_at, m.updated_at
 		FROM t_message m 
 		WHERE 
 			m.id = ?
 	`
 	err = m.db.
 		QueryRowContext(ctx, strSQL, messageID).
-		Scan(&out.ID, &out.Type, &out.Content)
+		Scan(&out.ID, &out.Type, &out.Content, &out.Timestamp, &out.CreatedAt, &out.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("%w, messageID: %s", interfaces.ErrRecordNotFound, messageID)
@@ -116,7 +116,7 @@ func (m *dbMessage) GetByPushStatus(ctx context.Context, status interfaces.Messa
 	out = &interfaces.DBMessage{}
 	err = m.db.
 		QueryRowContext(ctx, "SELECT * FROM t_message WHERE push_status = ? order by created_at asc limit 1", status).
-		Scan(&out.ID, &out.Type, &out.Content, &out.CreatedAt, &out.UpdatedAt)
+		Scan(&out.ID, &out.Type, &out.Content, &out.Timestamp, &out.CreatedAt, &out.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("%w, status: %d", interfaces.ErrRecordNotFound, status)
@@ -148,7 +148,10 @@ func (m *dbMessage) GetByUserID(ctx context.Context, userID string, status inter
 		SELECT
 			id,
 			type,
-			content
+			content,
+			timestamp,
+			created_at,
+			updated_at
 		FROM t_message WHERE id IN (
 			SELECT message_id FROM t_user_message WHERE user_id = ? AND push_status = ? ORDER BY created_at ASC
 		) LIMIT ?
@@ -161,7 +164,7 @@ func (m *dbMessage) GetByUserID(ctx context.Context, userID string, status inter
 
 	for rows.Next() {
 		tmp := &interfaces.DBMessage{}
-		err = rows.Scan(&tmp.ID, &tmp.Type, &tmp.Content)
+		err = rows.Scan(&tmp.ID, &tmp.Type, &tmp.Content, &tmp.Timestamp, &tmp.CreatedAt, &tmp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}

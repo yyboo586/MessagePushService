@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	channel = "message_push_service"
+	channel = "message_push_service_d"
 )
 
 var (
@@ -64,6 +64,7 @@ func (mqHandler *MQHandler) Register(topic string, handler func(msg *mqsdk.Messa
 }
 
 func (mqHandler *MQHandler) handleToUsers(msg *mqsdk.Message) (err error) {
+	log.Printf("handleToUsers msg: %v", msg)
 	userIDsInterface, ok := msg.Body.(map[string]interface{})["user_ids"]
 	if !ok {
 		return fmt.Errorf("body.user_ids is required")
@@ -72,6 +73,9 @@ func (mqHandler *MQHandler) handleToUsers(msg *mqsdk.Message) (err error) {
 	userIDs, ok := userIDsInterface.([]interface{})
 	if !ok {
 		return fmt.Errorf("body.user_ids is not a []interface{}")
+	}
+	if len(userIDs) == 0 {
+		return fmt.Errorf("user_ids is empty")
 	}
 
 	userIDsStr := make([]string, len(userIDs))
@@ -97,7 +101,7 @@ func (mqHandler *MQHandler) handleToUsers(msg *mqsdk.Message) (err error) {
 		return fmt.Errorf("failed to marshal content: %v", err)
 	}
 
-	err = mqHandler.logicsMessage.Add(context.Background(), interfaces.MessageTypeToUsers, userIDsStr, msg.ID, string(contentBytes))
+	err = mqHandler.logicsMessage.Add(context.Background(), interfaces.MessageTypeToUsers, userIDsStr, msg.ID, string(contentBytes), msg.Timestamp)
 	if err != nil {
 		log.Printf("[ERROR] save message error: %v", err)
 		return

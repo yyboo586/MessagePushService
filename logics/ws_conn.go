@@ -3,6 +3,8 @@ package logics
 import (
 	"MessagePushService/interfaces"
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -11,10 +13,10 @@ import (
 )
 
 type WsConn struct {
-	manager   interfaces.ILogicsWsConnManager
-	dbMessage interfaces.IDBMessage
-	conn      *websocket.Conn
-	UserInfo  *interfaces.UserInfo
+	manager       interfaces.ILogicsWsConnManager
+	logicsMessage interfaces.ILogicsMessage
+	conn          *websocket.Conn
+	UserInfo      *interfaces.UserInfo
 
 	writeTimeout      time.Duration // time allowed to write a message to the peer
 	readTimeout       time.Duration // time allowed to read the next pong message from the peer
@@ -30,13 +32,13 @@ type WsConn struct {
 	cancel context.CancelFunc
 }
 
-func NewWsConn(manager interfaces.ILogicsWsConnManager, conn *websocket.Conn, userInfo *interfaces.UserInfo, dbMessage interfaces.IDBMessage) interfaces.ILogicsWsConn {
+func NewWsConn(manager interfaces.ILogicsWsConnManager, conn *websocket.Conn, userInfo *interfaces.UserInfo, logicsMessage interfaces.ILogicsMessage) interfaces.ILogicsWsConn {
 	ctx, cancel := context.WithCancel(context.Background())
 	wsConn := &WsConn{
-		manager:   manager,
-		dbMessage: dbMessage,
-		conn:      conn,
-		UserInfo:  userInfo,
+		manager:       manager,
+		logicsMessage: logicsMessage,
+		conn:          conn,
+		UserInfo:      userInfo,
 
 		writeTimeout:      time.Second * 10,
 		readTimeout:       time.Second * 6,
@@ -96,7 +98,22 @@ func (wsConn *WsConn) readPump() {
 			// 正常关闭连接
 			return
 		}
-		wsConn.handleMessage(messageType, message)
+		log.Println("receive message from user: ", wsConn.UserInfo.ID, string(message))
+		if messageType != websocket.TextMessage {
+			log.Printf("[ERROR] receive unexpected message type, %d, %s", messageType, string(message))
+			return
+		}
+		var i map[string]interface{}
+		err = json.Unmarshal(message, &i)
+		if err != nil {
+			log.Printf("[ERROR] unmarshal message error, %v", err)
+			return
+		}
+		err = wsConn.handleMessage(i)
+		if err != nil {
+			log.Printf("[ERROR] handle message error, %v", err)
+			return
+		}
 	}
 }
 
@@ -136,34 +153,53 @@ func (wsConn *WsConn) writePump() {
 	}
 }
 
-func (wsConn *WsConn) handleMessage(messageType int, message []byte) {
-	log.Printf("[DEBUG] receive message from %s, message: %s", wsConn.UserInfo.ID, string(message))
-	/*
-		var i interface{}
-		err := json.Unmarshal(message, &i)
-		if err != nil {
-			log.Printf("[ERROR] unmarshal message error, %v", err)
-			return
-		}
-
-		messageType, ok := i.(map[string]interface{})["type"].(int)
+func (wsConn *WsConn) handleMessage(msg map[string]interface{}) (err error) {
+	id, ok := msg["id"].(string)
+	if !ok {
+		log.Printf("[ERROR] id is not a string")
+		return
+	}
+	typ, ok := msg["type"].(float64)
+	if !ok {
+		log.Printf("[ERROR] type is not a float64")
+		return
+	}
+	timestamp, ok := msg["timestamp"].(float64)
+	if !ok {
+		log.Printf("[ERROR] timestamp is not a float64")
+		return
+	}
+	switch interfaces.MessageType(typ) {
+	case interfaces.MessageTypeACK:
+	case interfaces.MessageTypeChatRoom:
+		body, ok := msg["body"].(map[string]interface{})
 		if !ok {
-			log.Printf("[ERROR] message_type is not a int")
-			return
+			return fmt.Errorf("body is not a map[string]interface{}")
+		}
+		from, ok := body["from"].(string)
+		if !ok {
+			return fmt.Errorf("from is not a string")
+		}
+		to, ok := body["to"].(string)
+		if !ok {
+			return fmt.Errorf("to is not a string")
 		}
 
-		switch interfaces.MessageType(messageType) {
-		case interfaces.MessageTypeACK:
-			msgID, ok := i.(map[string]interface{})["id"].(string)
-			if !ok {
-				log.Printf("[ERROR] message_id is required")
-				return
-			}
-			wsConn.dbMessage.UpdateStatus(wsConn.ctx, wsConn.UserInfo.ID, msgID, interfaces.MessagePushStatusSuccess)
-		default:
-			log.Printf("[ERROR] receive unexpected message type, %d, %s", messageType, string(message))
+		bodyStr, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("marshal body error, %v", err)
 		}
-	*/
+
+		err = wsConn.logicsMessage.Add(wsConn.ctx, interfaces.MessageTypeChatRoom, []string{from, to}, id, string(bodyStr), int64(timestamp))
+		if err != nil {
+			return fmt.Errorf("add message error, %v", err)
+		}
+		messagePushInstance.NotifyByNewMessage(id)
+	default:
+		return fmt.Errorf("receive unexpected message type, %v, %v", typ, msg)
+	}
+
+	return nil
 }
 
 func (wsConn *WsConn) SetPongHandler() {

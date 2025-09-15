@@ -2,7 +2,9 @@ package interfaces
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"log"
 	"time"
 )
 
@@ -27,15 +29,23 @@ type DBMessage struct {
 	ID        string
 	Type      int
 	Content   string
+	Timestamp int64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 func ConvertDBMessageToModel(message *DBMessage) *LogicsMessage {
+	var i interface{}
+	err := json.Unmarshal([]byte(message.Content), &i)
+	if err != nil {
+		log.Printf("[ERROR] unmarshal message content error: %v", err)
+		return nil
+	}
 	return &LogicsMessage{
 		ID:        message.ID,
-		Type:      message.Type,
-		Content:   message.Content,
+		Type:      MessageType(message.Type),
+		Content:   i,
+		Timestamp: message.Timestamp,
 		CreatedAt: message.CreatedAt,
 		UpdatedAt: message.UpdatedAt,
 	}

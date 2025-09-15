@@ -14,16 +14,16 @@ var (
 )
 
 type wsConnManager struct {
-	wsConns   map[string]interfaces.ILogicsWsConn // 用户ID -> 连接
-	mu        sync.RWMutex
-	dbMessage interfaces.IDBMessage
+	wsConns       map[string]interfaces.ILogicsWsConn // 用户ID -> 连接
+	mu            sync.RWMutex
+	logicsMessage interfaces.ILogicsMessage
 }
 
-func NewWsConnManager(dbMessage interfaces.IDBMessage) interfaces.ILogicsWsConnManager {
+func NewWsConnManager(logicsMessage interfaces.ILogicsMessage) interfaces.ILogicsWsConnManager {
 	wsConnManagerOnce.Do(func() {
 		wsConnManagerInstance = &wsConnManager{
-			wsConns:   make(map[string]interfaces.ILogicsWsConn, 10000),
-			dbMessage: dbMessage,
+			wsConns:       make(map[string]interfaces.ILogicsWsConn, 10000),
+			logicsMessage: logicsMessage,
 		}
 	})
 
@@ -34,7 +34,7 @@ func (manager *wsConnManager) Add(conn *websocket.Conn, userInfo *interfaces.Use
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
 
-	newConn := NewWsConn(manager, conn, userInfo, manager.dbMessage)
+	newConn := NewWsConn(manager, conn, userInfo, manager.logicsMessage)
 	manager.wsConns[userInfo.ID] = newConn
 }
 

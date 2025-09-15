@@ -69,7 +69,7 @@ func main() {
 	dbMessage := dbaccess.NewDBMessage(dbPool)
 
 	logicsMessage := logics.NewMessage(dbMessage)
-	logicsWsConnManager := logics.NewWsConnManager(dbMessage)
+	logicsWsConnManager := logics.NewWsConnManager(logicsMessage)
 	logicsMessagePush := logics.NewMessagePush(logicsWsConnManager, logicsMessage)
 
 	server := &Server{

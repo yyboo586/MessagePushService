@@ -1,6 +1,6 @@
 server:
-  publicAddr: 0.0.0.0:9700
-  privateAddr: 0.0.0.0:9701
+  publicAddr: 0.0.0.0:9400
+  privateAddr: 0.0.0.0:9401
 
 mq:
   type: nsq

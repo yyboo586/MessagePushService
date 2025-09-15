@@ -29,11 +29,12 @@ func NewMessage(dbMessage interfaces.IDBMessage) interfaces.ILogicsMessage {
 	return logicsMessageInstance
 }
 
-func (l *logicsMessage) Add(ctx context.Context, messageType interfaces.MessageType, userIDs []string, messageID string, content string) (err error) {
+func (l *logicsMessage) Add(ctx context.Context, messageType interfaces.MessageType, userIDs []string, messageID string, content string, timestamp int64) (err error) {
 	message := &interfaces.DBMessage{
-		ID:      messageID,
-		Type:    int(messageType),
-		Content: content,
+		ID:        messageID,
+		Type:      int(messageType),
+		Content:   content,
+		Timestamp: timestamp,
 	}
 	err = l.dbMessage.Add(ctx, userIDs, message)
 	if err != nil {
