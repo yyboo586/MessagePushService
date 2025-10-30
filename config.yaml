@@ -1,6 +1,6 @@
 server:
-  publicAddr: 0.0.0.0:9400
-  privateAddr: 0.0.0.0:9401
+  publicAddr: 0.0.0.0:9847
+  privateAddr: 0.0.0.0:9848
 
 mq:
   type: nsq
@@ -18,6 +18,6 @@ db:
 
 event:
   topics:
-    - core.push.users
+    - core.users.notify
     - test01
     - test02
