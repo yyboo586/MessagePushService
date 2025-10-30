@@ -1,6 +1,6 @@
 server:
-  publicAddr: 0.0.0.0:9400
-  privateAddr: 0.0.0.0:9401
+  publicAddr: 0.0.0.0:9847
+  privateAddr: 0.0.0.0:9848
 
 mq:
   type: nsq
@@ -11,13 +11,13 @@ thirdService:
 
 db:
   user: root
-  passwd: alsnvlkansda
-  host: 47.109.79.103
-  port: 9234
+  passwd: 12345678
+  host: 127.0.0.1
+  port: 3306
   dbName: message_push
 
 event:
   topics:
-    - core.push.users
+    - core.users.notify
     - test01
     - test02
