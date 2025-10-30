@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	channel = "message_push_service_d"
+	channel = "message_push_service"
 )
 
 var (
